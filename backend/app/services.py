@@ -166,12 +166,16 @@ def reschedule_appointment(
 
     scheduled_start = as_ist_naive(payload.scheduled_start)
     new_end = scheduled_start + timedelta(minutes=payload.duration_minutes)
-    if appointment.status == AppointmentStatus.CONFIRMED:
+    if appointment.status in (
+        AppointmentStatus.PENDING,
+        AppointmentStatus.CONFIRMED,
+    ):
         _check_overlap(session, appointment, scheduled_start, new_end)
     previous_status = appointment.status
     previous_start = appointment.scheduled_start
     appointment.scheduled_start = scheduled_start
     appointment.scheduled_end = new_end
+    appointment.status = AppointmentStatus.CONFIRMED
     appointment.version += 1
     session.add(
         _history(
@@ -183,6 +187,15 @@ def reschedule_appointment(
             previous_start,
         )
     )
+    if previous_status == AppointmentStatus.PENDING:
+        session.add(
+            NotificationOutbox(
+                appointment_id=appointment.id,
+                recipient=appointment.patient_email,
+                notification_type="appointment_confirmed",
+                message=f"Your appointment on {appointment.scheduled_start.isoformat()} is confirmed.",
+            )
+        )
     session.commit()
     session.refresh(appointment)
     return appointment

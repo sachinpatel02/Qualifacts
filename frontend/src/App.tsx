@@ -84,9 +84,9 @@ function App() {
   })
   const [rescheduleDrafts, setRescheduleDrafts] = useState<Record<number, string>>({})
 
-  async function loadAppointments() {
+  async function loadAppointments(clearError = true) {
     setLoading(true)
-    setError('')
+    if (clearError) setError('')
     try {
       const filter = role === 'patient' ? `?patient_email=${encodeURIComponent(patientEmail)}` : `?provider_id=${providerId}`
       setAppointments(await apiRequest<Appointment[]>(`/appointments${filter}`))
@@ -108,8 +108,9 @@ function App() {
       await loadAppointments()
     } catch (requestError) {
       if (requestError instanceof ApiError && requestError.status === 409) {
-        setError(`${requestError.message} The list has been refreshed.`)
-        await loadAppointments()
+        const conflictMessage = `${requestError.message} The list has been refreshed.`
+        await loadAppointments(false)
+        setError(conflictMessage)
       } else {
         setError(requestError instanceof Error ? requestError.message : 'Unable to update appointment.')
       }
@@ -160,7 +161,7 @@ function App() {
       () => apiRequest<Appointment>(`/appointments/${appointment.id}/reschedule`, {
           method: 'POST', body: JSON.stringify({ version: appointment.version, scheduled_start: scheduledStart, duration_minutes: 60 }),
       }),
-      'Appointment time updated.',
+      'Appointment time updated and confirmed. The patient notification was queued.',
     )
   }
 

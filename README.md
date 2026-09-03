@@ -45,7 +45,7 @@ Use the role switcher in the top-right corner to view either side of the workflo
 
 - View all appointments assigned to the provider
 - Confirm pending requests
-- Move pending or confirmed appointments to a new time
+- Move pending or confirmed appointments to a new time; moving a pending request confirms it immediately
 - Conflicting confirmed appointments are rejected
 
 ## API
