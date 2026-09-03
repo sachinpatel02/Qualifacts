@@ -6,25 +6,33 @@ from .models import AppointmentStatus
 
 
 class AppointmentCreate(SQLModel):
-    patient_name: str = Field(min_length=1, max_length=120)
-    patient_email: str = Field(min_length=3, max_length=255)
-    provider_id: int = 1
-    appointment_type: str = Field(min_length=1, max_length=120)
-    reason: str = Field(min_length=1, max_length=2000)
-    scheduled_start: datetime
-    duration_minutes: int = Field(default=60, gt=0, le=480)
+    """Fields required to submit a new pending appointment request."""
+
+    patient_name: str = Field(min_length=1, max_length=120, description="Patient's display name.")
+    patient_email: str = Field(min_length=3, max_length=255, description="Email used for appointment notifications.")
+    provider_id: int = Field(default=1, description="Provider receiving the request.")
+    appointment_type: str = Field(min_length=1, max_length=120, description="Requested type of visit.")
+    reason: str = Field(min_length=1, max_length=2000, description="Reason for the visit.")
+    scheduled_start: datetime = Field(description="Preferred start time in IST (Asia/Kolkata).")
+    duration_minutes: int = Field(default=60, gt=0, le=480, description="Requested duration in minutes.")
 
 
 class AppointmentAction(SQLModel):
-    version: int = Field(gt=0)
+    """Version token required for a concurrency-safe appointment mutation."""
+
+    version: int = Field(gt=0, description="Version last read by the caller.")
 
 
 class RescheduleRequest(AppointmentAction):
-    scheduled_start: datetime
-    duration_minutes: int = Field(default=60, gt=0, le=480)
+    """New time for a provider reschedule operation."""
+
+    scheduled_start: datetime = Field(description="New start time in IST (Asia/Kolkata).")
+    duration_minutes: int = Field(default=60, gt=0, le=480, description="New duration in minutes.")
 
 
 class AppointmentRead(SQLModel):
+    """Appointment returned by the API, including its concurrency version."""
+
     id: int
     patient_name: str
     patient_email: str
@@ -40,6 +48,8 @@ class AppointmentRead(SQLModel):
 
 
 class HistoryRead(SQLModel):
+    """Immutable audit event describing an appointment change."""
+
     id: int
     appointment_id: int
     action: str

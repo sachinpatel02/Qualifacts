@@ -19,10 +19,12 @@ def enable_sqlite_foreign_keys(dbapi_connection, _connection_record):
 
 
 def SessionLocal() -> Session:
+    """Create a SQLModel session connected to the application SQLite database."""
     return Session(engine)
 
 
 def get_db() -> Generator[Session, None, None]:
+    """Yield a request-scoped database session and always close it afterward."""
     db = SessionLocal()
     try:
         yield db

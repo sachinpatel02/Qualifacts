@@ -7,12 +7,16 @@ from .timezone import now_ist
 
 
 class AppointmentStatus(str, enum.Enum):
+    """Allowed appointment states and their public API values."""
+
     PENDING = "pending"
     CONFIRMED = "confirmed"
     CANCELLED = "cancelled"
 
 
 class Appointment(SQLModel, table=True):
+    """Persisted appointment with versioning for optimistic concurrency."""
+
     __tablename__ = "appointments"
 
     id: int | None = Field(default=None, primary_key=True)
@@ -38,6 +42,8 @@ class Appointment(SQLModel, table=True):
 
 
 class AppointmentHistory(SQLModel, table=True):
+    """Append-only record of an appointment status or time change."""
+
     __tablename__ = "appointment_history"
 
     id: int | None = Field(default=None, primary_key=True)
@@ -55,6 +61,8 @@ class AppointmentHistory(SQLModel, table=True):
 
 
 class NotificationOutbox(SQLModel, table=True):
+    """Durable stub job for patient appointment notifications."""
+
     __tablename__ = "notification_outbox"
 
     id: int | None = Field(default=None, primary_key=True)

@@ -14,6 +14,8 @@ from .timezone import as_ist_naive, now_ist
 
 
 class AppointmentError(Exception):
+    """Domain error carrying the HTTP status and safe client-facing detail."""
+
     def __init__(self, status_code: int, detail: str):
         self.status_code = status_code
         self.detail = detail
@@ -27,6 +29,7 @@ def _history(
     previous_status: AppointmentStatus | None,
     previous_start: datetime | None,
 ) -> AppointmentHistory:
+    """Build an audit event from an appointment's pre- and post-change values."""
     return AppointmentHistory(
         appointment_id=appointment.id,
         action=action,
@@ -40,11 +43,13 @@ def _history(
 
 
 def _begin_write(session: Session) -> None:
+    """Start SQLite's serialized write transaction for atomic conflict checks."""
     # SQLite serializes writers so the overlap check and update are atomic.
     session.execute(text("BEGIN IMMEDIATE"))
 
 
 def _get_appointment(session: Session, appointment_id: int) -> Appointment:
+    """Load an appointment or raise the service's not-found domain error."""
     appointment = session.scalar(
         select(Appointment).where(Appointment.id == appointment_id)
     )
@@ -54,6 +59,7 @@ def _get_appointment(session: Session, appointment_id: int) -> Appointment:
 
 
 def _check_version(appointment: Appointment, version: int) -> None:
+    """Reject a mutation made from a stale appointment representation."""
     if appointment.version != version:
         raise AppointmentError(
             409,
@@ -67,6 +73,7 @@ def _check_overlap(
     start: datetime,
     end: datetime,
 ) -> None:
+    """Reject a time range that overlaps another confirmed appointment."""
     overlap = session.scalar(
         select(Appointment).where(
             Appointment.provider_id == appointment.provider_id,
@@ -84,6 +91,7 @@ def _check_overlap(
 
 
 def create_appointment(session: Session, payload: AppointmentCreate) -> Appointment:
+    """Persist a pending request and its initial audit event."""
     scheduled_start = as_ist_naive(payload.scheduled_start)
     end = scheduled_start + timedelta(minutes=payload.duration_minutes)
     appointment = Appointment(
@@ -117,6 +125,7 @@ def create_appointment(session: Session, payload: AppointmentCreate) -> Appointm
 def confirm_appointment(
     session: Session, appointment_id: int, version: int, actor: str
 ) -> Appointment:
+    """Confirm a pending appointment and queue its patient notification."""
     _begin_write(session)
     appointment = _get_appointment(session, appointment_id)
     _check_version(appointment, version)
@@ -158,6 +167,7 @@ def reschedule_appointment(
     payload: RescheduleRequest,
     actor: str,
 ) -> Appointment:
+    """Move an appointment; moving a pending request confirms it immediately."""
     _begin_write(session)
     appointment = _get_appointment(session, appointment_id)
     _check_version(appointment, payload.version)
@@ -203,6 +213,7 @@ def reschedule_appointment(
 def cancel_appointment(
     session: Session, appointment_id: int, version: int, actor: str
 ) -> Appointment:
+    """Cancel a confirmed appointment and queue its patient notification."""
     _begin_write(session)
     appointment = _get_appointment(session, appointment_id)
     _check_version(appointment, version)
@@ -236,6 +247,7 @@ def cancel_appointment(
 
 
 def process_notification_outbox(session: Session) -> None:
+    """Log pending notification jobs as sent without blocking appointment writes."""
     jobs = session.scalars(
         select(NotificationOutbox)
         .where(NotificationOutbox.status == "pending")
