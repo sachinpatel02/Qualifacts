@@ -2,10 +2,9 @@ from contextlib import asynccontextmanager
 
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlmodel import Session, SQLModel, select
 
-from .database import Base, SessionLocal, engine, get_db
+from .database import SessionLocal, engine, get_db
 from .models import Appointment, AppointmentHistory, AppointmentStatus
 from .schemas import (
     AppointmentAction,
@@ -81,7 +80,7 @@ def seed_data() -> None:
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    Base.metadata.create_all(bind=engine)
+    SQLModel.metadata.create_all(bind=engine)
     seed_data()
     yield
 

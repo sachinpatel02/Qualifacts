@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
-from sqlalchemy import select, text
-from sqlalchemy.orm import Session
+from sqlalchemy import text
+from sqlmodel import Session, select
 
 from .models import Appointment, AppointmentHistory, AppointmentStatus, NotificationOutbox
 from .schemas import AppointmentCreate, RescheduleRequest

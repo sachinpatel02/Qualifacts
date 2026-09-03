@@ -1,11 +1,11 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from sqlmodel import Field, SQLModel
 
 from .models import AppointmentStatus
 
 
-class AppointmentCreate(BaseModel):
+class AppointmentCreate(SQLModel):
     patient_name: str = Field(min_length=1, max_length=120)
     patient_email: str = Field(min_length=3, max_length=255)
     provider_id: int = 1
@@ -15,7 +15,7 @@ class AppointmentCreate(BaseModel):
     duration_minutes: int = Field(default=60, gt=0, le=480)
 
 
-class AppointmentAction(BaseModel):
+class AppointmentAction(SQLModel):
     version: int = Field(gt=0)
 
 
@@ -24,9 +24,7 @@ class RescheduleRequest(AppointmentAction):
     duration_minutes: int = Field(default=60, gt=0, le=480)
 
 
-class AppointmentRead(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
+class AppointmentRead(SQLModel):
     id: int
     patient_name: str
     patient_email: str
@@ -41,9 +39,7 @@ class AppointmentRead(BaseModel):
     updated_at: datetime
 
 
-class HistoryRead(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
+class HistoryRead(SQLModel):
     id: int
     appointment_id: int
     action: str

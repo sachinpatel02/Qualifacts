@@ -1,10 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from .database import Base
+from sqlmodel import Field, Relationship, SQLModel
 
 
 class AppointmentStatus(str, enum.Enum):
@@ -13,59 +10,56 @@ class AppointmentStatus(str, enum.Enum):
     CANCELLED = "cancelled"
 
 
-class Appointment(Base):
+class Appointment(SQLModel, table=True):
     __tablename__ = "appointments"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    patient_name: Mapped[str] = mapped_column(String(120))
-    patient_email: Mapped[str] = mapped_column(String(255))
-    provider_id: Mapped[int] = mapped_column(Integer, index=True)
-    appointment_type: Mapped[str] = mapped_column(String(120))
-    reason: Mapped[str] = mapped_column(Text)
-    scheduled_start: Mapped[datetime] = mapped_column(DateTime)
-    scheduled_end: Mapped[datetime] = mapped_column(DateTime)
-    status: Mapped[AppointmentStatus] = mapped_column(
-        Enum(AppointmentStatus, native_enum=False),
-        default=AppointmentStatus.PENDING,
-        index=True,
-    )
-    version: Mapped[int] = mapped_column(Integer, default=1)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
-    )
+    __tablename__ = "appointments"
 
-    history: Mapped[list["AppointmentHistory"]] = relationship(
-        back_populates="appointment", cascade="all, delete-orphan"
+    id: int | None = Field(default=None, primary_key=True)
+    patient_name: str = Field(max_length=120)
+    patient_email: str = Field(max_length=255)
+    provider_id: int = Field(index=True)
+    appointment_type: str = Field(max_length=120)
+    reason: str
+    scheduled_start: datetime
+    scheduled_end: datetime
+    status: AppointmentStatus = Field(default=AppointmentStatus.PENDING, index=True)
+    version: int = Field(default=1)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+    history: list["AppointmentHistory"] = Relationship(
+        back_populates="appointment",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
     )
 
 
-class AppointmentHistory(Base):
+class AppointmentHistory(SQLModel, table=True):
     __tablename__ = "appointment_history"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    appointment_id: Mapped[int] = mapped_column(ForeignKey("appointments.id"), index=True)
-    action: Mapped[str] = mapped_column(String(40))
-    previous_status: Mapped[str | None] = mapped_column(String(20), nullable=True)
-    new_status: Mapped[str | None] = mapped_column(String(20), nullable=True)
-    previous_start: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    new_start: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    performed_by_role: Mapped[str] = mapped_column(String(30))
-    performed_by_id: Mapped[str] = mapped_column(String(120))
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    id: int | None = Field(default=None, primary_key=True)
+    appointment_id: int = Field(foreign_key="appointments.id", index=True)
+    action: str = Field(max_length=40)
+    previous_status: str | None = Field(default=None, max_length=20)
+    new_status: str | None = Field(default=None, max_length=20)
+    previous_start: datetime | None = None
+    new_start: datetime | None = None
+    performed_by_role: str = Field(max_length=30)
+    performed_by_id: str = Field(max_length=120)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
-    appointment: Mapped[Appointment] = relationship(back_populates="history")
+    appointment: Appointment = Relationship(back_populates="history")
 
 
-class NotificationOutbox(Base):
+class NotificationOutbox(SQLModel, table=True):
     __tablename__ = "notification_outbox"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    appointment_id: Mapped[int] = mapped_column(ForeignKey("appointments.id"), index=True)
-    recipient: Mapped[str] = mapped_column(String(255))
-    notification_type: Mapped[str] = mapped_column(String(40))
-    message: Mapped[str] = mapped_column(Text)
-    status: Mapped[str] = mapped_column(String(20), default="pending")
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    processed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    id: int | None = Field(default=None, primary_key=True)
+    appointment_id: int = Field(foreign_key="appointments.id", index=True)
+    recipient: str = Field(max_length=255)
+    notification_type: str = Field(max_length=40)
+    message: str
+    status: str = Field(default="pending", max_length=20)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    processed_at: datetime | None = None
+    error: str | None = None

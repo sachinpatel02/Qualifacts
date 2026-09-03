@@ -5,7 +5,7 @@ A minimal patient portal built for the take-home assignment. Patients can reques
 ## Stack
 
 - **Frontend:** React 19, TypeScript, Vite
-- **Backend:** FastAPI, SQLAlchemy, SQLite
+- **Backend:** FastAPI, SQLModel, SQLite
 - **Runtime:** Python 3.14 and Node.js 22+
 
 ## Run Locally
