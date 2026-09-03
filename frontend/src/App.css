@@ -1,0 +1,93 @@
+:root { --ink: #21332f; --muted: #71807b; --line: #dce3dc; --paper: #fbfcf8; --sage: #dceadf; --forest: #2e685b; --coral: #d96f5b; --amber: #b07a32; }
+#root { min-height: 100vh; }
+.portal-shell { min-height: 100vh; background: radial-gradient(circle at 90% 0%, #e8f0e3 0, transparent 35%), #f4f5f0; }
+.topbar { height: 82px; display: flex; align-items: center; gap: 12px; padding: 0 clamp(22px, 6vw, 96px); border-bottom: 1px solid var(--line); background: rgba(251, 252, 248, .84); }
+.brand-mark { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 11px; color: white; background: var(--forest); font-weight: 700; letter-spacing: .04em; }
+.brand-copy { display: flex; flex-direction: column; line-height: 1.1; }
+.brand-name { font-weight: 600; font-size: 14px; }
+.eyebrow { margin: 0 0 8px; color: var(--muted); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; }
+.brand-copy .eyebrow { margin: 0 0 3px; font-size: 9px; }
+.role-switcher { display: flex; margin-left: auto; padding: 4px; background: #edf1eb; border: 1px solid var(--line); border-radius: 9px; }
+.role-switcher button { border: 0; padding: 8px 15px; border-radius: 6px; color: var(--muted); background: transparent; font-size: 12px; font-weight: 600; }
+.role-switcher button.active { color: var(--ink); background: white; box-shadow: 0 1px 4px rgba(33, 51, 47, .1); }
+.intro { max-width: 1240px; margin: 0 auto; padding: 66px clamp(22px, 6vw, 96px) 50px; display: flex; justify-content: space-between; align-items: end; }
+.accent-text { color: var(--forest); }
+h1, h2, h3, p { margin-top: 0; }
+h1, h2 { font-family: 'Newsreader', Georgia, serif; color: var(--ink); font-weight: 600; }
+h1 { margin-bottom: 13px; font-size: clamp(42px, 5vw, 66px); line-height: .98; letter-spacing: 0; }
+h2 { margin-bottom: 8px; font-size: 29px; line-height: 1.05; }
+h3 { margin: 0; font-size: 16px; font-weight: 700; }
+.intro-copy { max-width: 440px; color: var(--muted); font-size: 15px; }
+.date-stamp { display: flex; flex-direction: column; align-items: end; gap: 5px; padding-bottom: 3px; color: var(--muted); font-size: 12px; }
+.date-stamp strong { color: var(--ink); font-size: 14px; }
+.content-grid { max-width: 1240px; margin: 0 auto; padding: 0 clamp(22px, 6vw, 96px) 90px; display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(290px, .75fr); gap: 26px; }
+.appointments-panel, .request-panel, .provider-summary { border: 1px solid var(--line); background: rgba(251, 252, 248, .88); }
+.appointments-panel { padding: 27px; }
+.request-panel, .provider-summary { align-self: start; padding: 30px; background: var(--sage); border-color: #cbdcca; }
+.provider-summary { background: var(--ink); border-color: var(--ink); color: #e1ece5; }
+.provider-summary h2 { color: white; }
+.provider-summary .eyebrow { color: #9fb9aa; }
+.section-heading { display: flex; justify-content: space-between; align-items: start; margin-bottom: 22px; }
+.section-heading h2 { margin: 0; }
+.refresh-button { border: 0; color: var(--forest); background: transparent; font-size: 12px; font-weight: 700; }
+.refresh-button span { display: inline-block; margin-right: 4px; font-size: 18px; vertical-align: -1px; }
+.empty-state { padding: 40px 10px; color: var(--muted); text-align: center; font-size: 14px; }
+.appointment-list { display: grid; gap: 10px; }
+.appointment-card { display: grid; grid-template-columns: 67px 1fr; gap: 19px; padding: 18px 0; border-top: 1px solid var(--line); }
+.appointment-date { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--forest); line-height: 1.1; }
+.appointment-date span:first-child { font-size: 10px; text-transform: uppercase; font-weight: 700; letter-spacing: .07em; }
+.appointment-date strong { font-family: 'Newsreader', Georgia, serif; font-size: 34px; font-weight: 600; }
+.appointment-date span:last-child { color: var(--muted); font-size: 11px; }
+.appointment-details { min-width: 0; }
+.appointment-title-row { display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+.status { padding: 4px 8px; border-radius: 99px; font-size: 10px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; }
+.status.pending { color: var(--amber); background: #f7ecd9; }
+.status.confirmed { color: var(--forest); background: #dcefe2; }
+.status.cancelled { color: #a45349; background: #f7e2de; }
+.appointment-time { margin: 5px 0 6px; color: var(--forest); font-size: 13px; font-weight: 600; }
+.appointment-meta { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.appointment-meta span { padding: 0 4px; color: #a4b1aa; }
+.text-button { border: 0; padding: 0; background: transparent; font-size: 12px; font-weight: 700; }
+.danger-text { color: var(--coral); }
+.request-panel h2, .provider-summary h2 { margin-bottom: 12px; }
+.panel-copy { color: #60736a; font-size: 13px; line-height: 1.55; }
+.provider-summary .panel-copy { color: #b6c8bc; }
+form { display: grid; gap: 17px; margin-top: 27px; }
+label { display: grid; gap: 7px; color: #52665c; font-size: 11px; font-weight: 700; }
+input, select, textarea { width: 100%; border: 1px solid #c8d8ca; border-radius: 5px; padding: 11px 12px; color: var(--ink); background: rgba(255,255,255,.7); outline: none; font-size: 13px; }
+textarea { resize: vertical; }
+input:focus, select:focus, textarea:focus { border-color: var(--forest); box-shadow: 0 0 0 3px rgba(46, 104, 91, .12); }
+.primary-button, .secondary-button { border-radius: 5px; padding: 12px 15px; border: 1px solid var(--forest); font-size: 12px; font-weight: 700; transition: transform .15s, background .15s; }
+.primary-button { color: white; background: var(--forest); }
+.primary-button:hover { background: #24594e; transform: translateY(-1px); }
+.primary-button:disabled { cursor: wait; opacity: .65; }
+.primary-button span { float: right; font-size: 17px; line-height: 12px; }
+.secondary-button { color: var(--forest); background: transparent; }
+.secondary-button:hover { background: #e3eee4; }
+.small { padding: 8px 11px; font-size: 11px; }
+.provider-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 15px; }
+.reschedule-control { display: flex; gap: 6px; align-items: center; }
+.reschedule-control input { width: 185px; padding: 8px; font-size: 11px; }
+.summary-number { color: #e7a171; font-family: 'Newsreader', Georgia, serif; font-size: 76px; line-height: .95; }
+.summary-rule { height: 1px; margin: 28px 0 20px; background: #44564e; }
+.small-note { display: flex; gap: 8px; align-items: center; color: #b6c8bc; font-size: 11px; }
+.dot { width: 7px; height: 7px; border-radius: 50%; }
+.dot.green { background: #8ec89c; }
+.dot.amber { background: #e7a171; }
+.notice { max-width: 1240px; margin: -23px auto 27px; padding: 11px 16px; border-radius: 5px; font-size: 12px; }
+.notice.success { color: #2e685b; background: #dcefe2; }
+.notice.error { color: #984d44; background: #f7e2de; }
+@media (max-width: 760px) {
+  .topbar { height: auto; min-height: 74px; padding: 15px 20px; }
+  .role-switcher { margin-left: auto; }
+  .role-switcher button { padding-inline: 10px; }
+  .intro { padding-top: 48px; display: block; }
+  .date-stamp { align-items: start; margin-top: 25px; }
+  .content-grid { display: block; }
+  .request-panel, .provider-summary { margin-top: 18px; }
+  .appointments-panel { padding: 20px 17px; }
+  .appointment-card { grid-template-columns: 51px 1fr; gap: 12px; }
+  .appointment-title-row { align-items: start; flex-direction: column; gap: 6px; }
+  .reschedule-control { flex-wrap: wrap; }
+  .notice { margin-inline: 22px; }
+}
