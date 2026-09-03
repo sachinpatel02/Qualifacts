@@ -18,6 +18,19 @@ type Appointment = {
   version: number
 }
 
+type HistoryEvent = {
+  id: number
+  appointment_id: number
+  action: string
+  previous_status: string | null
+  new_status: string | null
+  previous_start: string | null
+  new_start: string | null
+  performed_by_role: string
+  performed_by_id: string
+  created_at: string
+}
+
 type RequestForm = {
   scheduled_start: string
   appointment_type: string
@@ -83,6 +96,9 @@ function App() {
     reason: '',
   })
   const [rescheduleDrafts, setRescheduleDrafts] = useState<Record<number, string>>({})
+  const [expandedHistory, setExpandedHistory] = useState<number | null>(null)
+  const [history, setHistory] = useState<Record<number, HistoryEvent[]>>({})
+  const [historyLoading, setHistoryLoading] = useState<number | null>(null)
 
   async function loadAppointments(clearError = true) {
     setLoading(true)
@@ -114,6 +130,24 @@ function App() {
       } else {
         setError(requestError instanceof Error ? requestError.message : 'Unable to update appointment.')
       }
+    }
+  }
+
+  async function toggleHistory(appointmentId: number) {
+    if (expandedHistory === appointmentId) {
+      setExpandedHistory(null)
+      return
+    }
+    setExpandedHistory(appointmentId)
+    if (history[appointmentId]) return
+    setHistoryLoading(appointmentId)
+    try {
+      const events = await apiRequest<HistoryEvent[]>(`/appointments/${appointmentId}/history`)
+      setHistory((current) => ({ ...current, [appointmentId]: events }))
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to load appointment history.')
+    } finally {
+      setHistoryLoading(null)
     }
   }
 
@@ -195,6 +229,15 @@ function App() {
                   <div className="appointment-title-row"><h3>{appointment.appointment_type}</h3><span className={`status ${appointment.status}`}>{appointment.status}</span></div>
                   <p className="appointment-time">{timeLabel(appointment.scheduled_start)} - {timeLabel(appointment.scheduled_end)}</p>
                   <p className="appointment-meta">{role === 'patient' ? 'Dr. Maya Patel' : appointment.patient_name} <span>·</span> {appointment.reason}</p>
+                  <button className="text-button history-button" type="button" onClick={() => void toggleHistory(appointment.id)}>
+                    {expandedHistory === appointment.id ? 'Hide history' : 'View history'}
+                  </button>
+                  {expandedHistory === appointment.id && <div className="history-panel">
+                    {historyLoading === appointment.id ? <p className="history-loading">Loading history...</p> : history[appointment.id]?.map((event) => <div className="history-event" key={event.id}>
+                      <span className="history-dot" />
+                      <div><strong>{event.action.replace('_', ' ')}</strong><span>{event.performed_by_role} · {dateLabel(event.created_at)} · {timeLabel(event.created_at)}</span>{event.action === 'rescheduled' && event.previous_start && event.new_start && <small>{timeLabel(event.previous_start)} → {timeLabel(event.new_start)}</small>}</div>
+                    </div>)}
+                  </div>}
                   {role === 'patient' && appointment.status === 'confirmed' && <button className="text-button danger-text" type="button" onClick={() => cancel(appointment)}>Cancel appointment</button>}
                   {role === 'provider' && <div className="provider-actions">
                     {appointment.status === 'pending' && <button className="primary-button small" type="button" onClick={() => confirm(appointment)}>Confirm request</button>}

@@ -49,6 +49,14 @@ h3 { margin: 0; font-size: 16px; font-weight: 700; }
 .appointment-meta span { padding: 0 4px; color: #a4b1aa; }
 .text-button { border: 0; padding: 0; background: transparent; font-size: 12px; font-weight: 700; }
 .danger-text { color: var(--coral); }
+.history-button { display: block; margin-top: 12px; color: var(--forest); }
+.history-panel { margin-top: 13px; padding: 13px 14px; border-left: 2px solid #b9d1bd; background: #f1f6ef; }
+.history-event { display: flex; gap: 10px; padding: 7px 0; }
+.history-dot { width: 7px; height: 7px; flex: 0 0 7px; margin-top: 5px; border-radius: 50%; background: var(--forest); }
+.history-event div { display: grid; gap: 2px; }
+.history-event strong { color: var(--ink); font-size: 11px; text-transform: capitalize; }
+.history-event span, .history-event small, .history-loading { color: var(--muted); font-size: 10px; }
+.history-event small { color: var(--forest); }
 .request-panel h2, .provider-summary h2 { margin-bottom: 12px; }
 .panel-copy { color: #60736a; font-size: 13px; line-height: 1.55; }
 .provider-summary .panel-copy { color: #b6c8bc; }
