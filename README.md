@@ -75,7 +75,7 @@ Every request, confirmation, reschedule, and cancellation appends a record to `a
 
 ### Notifications
 
-Confirmation writes a notification job to `notification_outbox` in the same transaction as the status change. A FastAPI background task then logs the simulated delivery. Notification processing cannot slow down or roll back the confirmation response.
+Confirmation, rescheduling, and cancellation write notification jobs to `notification_outbox` in the same transaction as the appointment change. A FastAPI background task then logs the simulated delivery. Notification processing cannot slow down or roll back the appointment response.
 
 For production traffic, the outbox would be processed by a durable worker with retries and monitoring.
 

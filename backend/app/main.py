@@ -149,22 +149,28 @@ def confirm(
 def reschedule(
     appointment_id: int,
     payload: RescheduleRequest,
+    background_tasks: BackgroundTasks,
     session: Session = Depends(get_db),
 ):
-    return _run(
+    appointment = _run(
         lambda: reschedule_appointment(session, appointment_id, payload, "provider-1")
     )
+    background_tasks.add_task(_process_notifications)
+    return appointment
 
 
 @app.post("/api/appointments/{appointment_id}/cancel", response_model=AppointmentRead)
 def cancel(
     appointment_id: int,
     payload: AppointmentAction,
+    background_tasks: BackgroundTasks,
     session: Session = Depends(get_db),
 ):
-    return _run(
+    appointment = _run(
         lambda: cancel_appointment(session, appointment_id, payload.version, "patient")
     )
+    background_tasks.add_task(_process_notifications)
+    return appointment
 
 
 @app.get("/api/appointments/{appointment_id}/history", response_model=list[HistoryRead])

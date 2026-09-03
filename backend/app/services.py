@@ -187,15 +187,14 @@ def reschedule_appointment(
             previous_start,
         )
     )
-    if previous_status == AppointmentStatus.PENDING:
-        session.add(
-            NotificationOutbox(
-                appointment_id=appointment.id,
-                recipient=appointment.patient_email,
-                notification_type="appointment_confirmed",
-                message=f"Your appointment on {appointment.scheduled_start.isoformat()} is confirmed.",
-            )
+    session.add(
+        NotificationOutbox(
+            appointment_id=appointment.id,
+            recipient=appointment.patient_email,
+            notification_type="appointment_rescheduled",
+            message=f"Your appointment has been moved to {appointment.scheduled_start.isoformat()}.",
         )
+    )
     session.commit()
     session.refresh(appointment)
     return appointment
@@ -221,6 +220,14 @@ def cancel_appointment(
             actor,
             previous_status,
             appointment.scheduled_start,
+        )
+    )
+    session.add(
+        NotificationOutbox(
+            appointment_id=appointment.id,
+            recipient=appointment.patient_email,
+            notification_type="appointment_cancelled",
+            message=f"Your appointment on {appointment.scheduled_start.isoformat()} was cancelled.",
         )
     )
     session.commit()

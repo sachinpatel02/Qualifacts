@@ -143,7 +143,7 @@ function App() {
     if (!window.confirm('Cancel this confirmed appointment?')) return
     void runAction(
       () => apiRequest<Appointment>(`/appointments/${appointment.id}/cancel`, { method: 'POST', body: JSON.stringify({ version: appointment.version }) }),
-      'Appointment cancelled.',
+      'Appointment cancelled. The patient notification was queued.',
     )
   }
 
