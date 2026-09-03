@@ -21,6 +21,7 @@ from .services import (
     process_notification_outbox,
     reschedule_appointment,
 )
+from .timezone import now_ist
 
 
 def seed_data() -> None:
@@ -29,7 +30,7 @@ def seed_data() -> None:
             return
         from datetime import datetime, timedelta
 
-        now = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
+        now = now_ist().replace(minute=0, second=0, microsecond=0)
         seed_appointments = [
             Appointment(
                 patient_name="Jordan Lee",
@@ -134,13 +135,17 @@ def confirm(
     session: Session = Depends(get_db),
 ):
     appointment = _run(
-        lambda: confirm_appointment(session, appointment_id, payload.version, "provider-1")
+        lambda: confirm_appointment(
+            session, appointment_id, payload.version, "provider-1"
+        )
     )
     background_tasks.add_task(_process_notifications)
     return appointment
 
 
-@app.post("/api/appointments/{appointment_id}/reschedule", response_model=AppointmentRead)
+@app.post(
+    "/api/appointments/{appointment_id}/reschedule", response_model=AppointmentRead
+)
 def reschedule(
     appointment_id: int,
     payload: RescheduleRequest,

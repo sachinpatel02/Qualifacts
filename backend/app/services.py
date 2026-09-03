@@ -3,8 +3,14 @@ from datetime import datetime, timedelta
 from sqlalchemy import text
 from sqlmodel import Session, select
 
-from .models import Appointment, AppointmentHistory, AppointmentStatus, NotificationOutbox
+from .models import (
+    Appointment,
+    AppointmentHistory,
+    AppointmentStatus,
+    NotificationOutbox,
+)
 from .schemas import AppointmentCreate, RescheduleRequest
+from .timezone import as_ist_naive, now_ist
 
 
 class AppointmentError(Exception):
@@ -78,14 +84,15 @@ def _check_overlap(
 
 
 def create_appointment(session: Session, payload: AppointmentCreate) -> Appointment:
-    end = payload.scheduled_start + timedelta(minutes=payload.duration_minutes)
+    scheduled_start = as_ist_naive(payload.scheduled_start)
+    end = scheduled_start + timedelta(minutes=payload.duration_minutes)
     appointment = Appointment(
         patient_name=payload.patient_name,
         patient_email=payload.patient_email,
         provider_id=payload.provider_id,
         appointment_type=payload.appointment_type,
         reason=payload.reason,
-        scheduled_start=payload.scheduled_start,
+        scheduled_start=scheduled_start,
         scheduled_end=end,
         status=AppointmentStatus.PENDING,
         version=1,
@@ -115,13 +122,22 @@ def confirm_appointment(
     _check_version(appointment, version)
     if appointment.status != AppointmentStatus.PENDING:
         raise AppointmentError(409, "Only pending appointments can be confirmed.")
-    _check_overlap(session, appointment, appointment.scheduled_start, appointment.scheduled_end)
+    _check_overlap(
+        session, appointment, appointment.scheduled_start, appointment.scheduled_end
+    )
 
     previous_status = appointment.status
     appointment.status = AppointmentStatus.CONFIRMED
     appointment.version += 1
     session.add(
-        _history(appointment, "confirmed", "provider", actor, previous_status, appointment.scheduled_start)
+        _history(
+            appointment,
+            "confirmed",
+            "provider",
+            actor,
+            previous_status,
+            appointment.scheduled_start,
+        )
     )
     session.add(
         NotificationOutbox(
@@ -148,16 +164,24 @@ def reschedule_appointment(
     if appointment.status == AppointmentStatus.CANCELLED:
         raise AppointmentError(409, "Cancelled appointments cannot be rescheduled.")
 
-    new_end = payload.scheduled_start + timedelta(minutes=payload.duration_minutes)
+    scheduled_start = as_ist_naive(payload.scheduled_start)
+    new_end = scheduled_start + timedelta(minutes=payload.duration_minutes)
     if appointment.status == AppointmentStatus.CONFIRMED:
-        _check_overlap(session, appointment, payload.scheduled_start, new_end)
+        _check_overlap(session, appointment, scheduled_start, new_end)
     previous_status = appointment.status
     previous_start = appointment.scheduled_start
-    appointment.scheduled_start = payload.scheduled_start
+    appointment.scheduled_start = scheduled_start
     appointment.scheduled_end = new_end
     appointment.version += 1
     session.add(
-        _history(appointment, "rescheduled", "provider", actor, previous_status, previous_start)
+        _history(
+            appointment,
+            "rescheduled",
+            "provider",
+            actor,
+            previous_status,
+            previous_start,
+        )
     )
     session.commit()
     session.refresh(appointment)
@@ -177,7 +201,14 @@ def cancel_appointment(
     appointment.status = AppointmentStatus.CANCELLED
     appointment.version += 1
     session.add(
-        _history(appointment, "cancelled", "patient", actor, previous_status, appointment.scheduled_start)
+        _history(
+            appointment,
+            "cancelled",
+            "patient",
+            actor,
+            previous_status,
+            appointment.scheduled_start,
+        )
     )
     session.commit()
     session.refresh(appointment)
@@ -194,7 +225,7 @@ def process_notification_outbox(session: Session) -> None:
         try:
             print(f"Would send {job.notification_type} to {job.recipient}")
             job.status = "sent"
-            job.processed_at = datetime.utcnow()
+            job.processed_at = now_ist()
         except Exception as exc:  # pragma: no cover - defensive worker boundary
             job.status = "failed"
             job.error = str(exc)

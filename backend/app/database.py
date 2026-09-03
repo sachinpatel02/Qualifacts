@@ -4,7 +4,6 @@ from pathlib import Path
 from sqlalchemy import event
 from sqlmodel import Session, SQLModel, create_engine
 
-
 DATABASE_PATH = Path(__file__).resolve().parent.parent / "patient_portal.db"
 DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
 

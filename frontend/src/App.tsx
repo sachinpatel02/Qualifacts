@@ -25,6 +25,7 @@ type RequestForm = {
 }
 
 const API_URL = 'http://127.0.0.1:8000/api'
+const IST_TIME_ZONE = 'Asia/Kolkata'
 const patientEmail = 'jordan@example.com'
 const providerId = 1
 
@@ -49,12 +50,24 @@ async function apiRequest<T>(path: string, options?: RequestInit): Promise<T> {
 
 function localInputValue(iso: string) { return iso.slice(0, 16) }
 
+function istDate(iso: string) {
+  return new Date(iso.endsWith('Z') ? iso : `${iso}+05:30`)
+}
+
+function currentIstInputValue() {
+  return new Intl.DateTimeFormat('sv-SE', {
+    timeZone: IST_TIME_ZONE,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+  }).format(new Date()).replace(' ', 'T')
+}
+
 function dateLabel(iso: string) {
-  return new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(iso))
+  return new Intl.DateTimeFormat('en-US', { timeZone: IST_TIME_ZONE, weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }).format(istDate(iso))
 }
 
 function timeLabel(iso: string) {
-  return new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' }).format(new Date(iso))
+  return new Intl.DateTimeFormat('en-US', { timeZone: IST_TIME_ZONE, hour: 'numeric', minute: '2-digit' }).format(istDate(iso))
 }
 
 function App() {
@@ -65,7 +78,7 @@ function App() {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [request, setRequest] = useState<RequestForm>({
-    scheduled_start: localInputValue(new Date(Date.now() + 86400000 * 2).toISOString()),
+    scheduled_start: currentIstInputValue(),
     appointment_type: 'Therapy follow-up',
     reason: '',
   })
@@ -114,7 +127,7 @@ function App() {
         body: JSON.stringify({
           patient_name: 'Jordan Lee', patient_email: patientEmail, provider_id: providerId,
           appointment_type: request.appointment_type, reason: request.reason,
-          scheduled_start: new Date(request.scheduled_start).toISOString(), duration_minutes: 60,
+          scheduled_start: request.scheduled_start, duration_minutes: 60,
         }),
       })
       setRequest((current) => ({ ...current, reason: '' }))
@@ -145,7 +158,7 @@ function App() {
     if (!scheduledStart) return
     void runAction(
       () => apiRequest<Appointment>(`/appointments/${appointment.id}/reschedule`, {
-        method: 'POST', body: JSON.stringify({ version: appointment.version, scheduled_start: new Date(scheduledStart).toISOString(), duration_minutes: 60 }),
+          method: 'POST', body: JSON.stringify({ version: appointment.version, scheduled_start: scheduledStart, duration_minutes: 60 }),
       }),
       'Appointment time updated.',
     )
@@ -164,7 +177,7 @@ function App() {
 
       <section className="intro">
         <div><p className="eyebrow accent-text">{role === 'patient' ? 'Your care, in view' : 'Care team workspace'}</p><h1>{role === 'patient' ? 'Appointments' : 'Appointment requests'}</h1><p className="intro-copy">{role === 'patient' ? 'Keep track of upcoming visits and request time with your care team.' : 'Review requests, protect your schedule, and keep patients in the loop.'}</p></div>
-        <div className="date-stamp"><span>Today</span><strong>{dateLabel(new Date().toISOString())}</strong></div>
+        <div className="date-stamp"><span>Today · IST</span><strong>{dateLabel(new Date().toISOString())}</strong></div>
       </section>
 
       {message && <div className="notice success" role="status">{message}</div>}
@@ -176,7 +189,7 @@ function App() {
           {loading ? <div className="empty-state">Loading your schedule...</div> : appointments.length === 0 ? <div className="empty-state">No appointments to show yet.</div> : (
             <div className="appointment-list">
               {appointments.map((appointment) => <article className="appointment-card" key={appointment.id}>
-                <div className="appointment-date"><span>{dateLabel(appointment.scheduled_start).split(',')[0]}</span><strong>{new Date(appointment.scheduled_start).getDate()}</strong><span>{new Intl.DateTimeFormat('en-US', { month: 'short' }).format(new Date(appointment.scheduled_start))}</span></div>
+                <div className="appointment-date"><span>{dateLabel(appointment.scheduled_start).split(',')[0]}</span><strong>{istDate(appointment.scheduled_start).getDate()}</strong><span>{new Intl.DateTimeFormat('en-US', { timeZone: IST_TIME_ZONE, month: 'short' }).format(istDate(appointment.scheduled_start))}</span></div>
                 <div className="appointment-details">
                   <div className="appointment-title-row"><h3>{appointment.appointment_type}</h3><span className={`status ${appointment.status}`}>{appointment.status}</span></div>
                   <p className="appointment-time">{timeLabel(appointment.scheduled_start)} - {timeLabel(appointment.scheduled_end)}</p>

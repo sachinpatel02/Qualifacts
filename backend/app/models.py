@@ -3,6 +3,8 @@ from datetime import datetime
 
 from sqlmodel import Field, Relationship, SQLModel
 
+from .timezone import now_ist
+
 
 class AppointmentStatus(str, enum.Enum):
     PENDING = "pending"
@@ -11,8 +13,6 @@ class AppointmentStatus(str, enum.Enum):
 
 
 class Appointment(SQLModel, table=True):
-    __tablename__ = "appointments"
-
     __tablename__ = "appointments"
 
     id: int | None = Field(default=None, primary_key=True)
@@ -25,8 +25,11 @@ class Appointment(SQLModel, table=True):
     scheduled_end: datetime
     status: AppointmentStatus = Field(default=AppointmentStatus.PENDING, index=True)
     version: int = Field(default=1)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=now_ist)
+    updated_at: datetime = Field(
+        default_factory=now_ist,
+        sa_column_kwargs={"onupdate": now_ist},
+    )
 
     history: list["AppointmentHistory"] = Relationship(
         back_populates="appointment",
@@ -46,7 +49,7 @@ class AppointmentHistory(SQLModel, table=True):
     new_start: datetime | None = None
     performed_by_role: str = Field(max_length=30)
     performed_by_id: str = Field(max_length=120)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=now_ist)
 
     appointment: Appointment = Relationship(back_populates="history")
 
@@ -60,6 +63,6 @@ class NotificationOutbox(SQLModel, table=True):
     notification_type: str = Field(max_length=40)
     message: str
     status: str = Field(default="pending", max_length=20)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=now_ist)
     processed_at: datetime | None = None
     error: str | None = None

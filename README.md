@@ -95,3 +95,9 @@ npm run build
 ```
 
 The backend was validated with API smoke tests covering startup, seeded listing, confirmation, audit history, stale updates, and overlap rejection.
+
+## Timezone
+
+All appointment times and application timestamps use India Standard Time (`Asia/Kolkata`). The API stores and returns IST wall-clock values without a UTC conversion, and the frontend formats values explicitly in IST. This keeps `datetime-local` input, persistence, API responses, and display consistent.
+
+If you created local data before this timezone change, remove `backend/patient_portal.db` once and restart the backend so the development seed data is recreated under the IST policy. Existing rows cannot be converted reliably without knowing whether each old value was entered as UTC or IST.
