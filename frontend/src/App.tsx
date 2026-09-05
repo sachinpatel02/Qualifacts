@@ -193,7 +193,7 @@ function App() {
     if (!scheduledStart) return
     void runAction(
       () => apiRequest<Appointment>(`/appointments/${appointment.id}/reschedule`, {
-          method: 'POST', body: JSON.stringify({ version: appointment.version, scheduled_start: scheduledStart, duration_minutes: 60 }),
+        method: 'POST', body: JSON.stringify({ version: appointment.version, scheduled_start: scheduledStart, duration_minutes: 60 }),
       }),
       'Appointment time updated and confirmed. The patient notification was queued.',
     )
